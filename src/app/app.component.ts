@@ -10,49 +10,63 @@ import { jsPDF } from "jspdf";
 export class AppComponent {
   title = 'imagecollage';
 
-  
-  public imageWidth : number = 105;
 
+  public imageWidth: number = 105;
 
-  createpdf(image1: HTMLInputElement, image2: HTMLInputElement, image3: HTMLInputElement, image4: HTMLInputElement) {
+  async createpdf(image: HTMLInputElement) {
     // Size of A4: 210 x 297 mm
     const imageWidth = 105;
     const margin = 1;
-    const secondrowOffset  = 170; // 297 - average image height (127) = 170
-    const promiseArray : Array<Promise<any>> = [];
-    
+    const secondrowOffset = 170; // 297 - average image height (127) = 170
+
     const doc = new jsPDF();
-    
-    const file1 = image1.files?.item(0);
-    const file2 = image2.files?.item(0);
-    const file3 = image3.files?.item(0);
-    const file4 = image4.files?.item(0);
-    
-    if ((file1 instanceof File)) {
-      promiseArray.push(this.addImageToDocument(doc, file1, 0, 0, imageWidth - (margin / 2)));
+
+    if (image.files == null) {
+      return;
     }
-    if ((file2 instanceof File)) {
-      promiseArray.push(this.addImageToDocument(doc, file2, imageWidth + margin, 0, imageWidth - (margin / 2)));
+
+    const files = Array.from(image.files);
+
+    for (let i = 0; i < files.length; i += 4) {
+      var page = doc;
+
+      const chunk = files.slice(i, i + 4);
+      const file1 = chunk[0];
+      const file2 = chunk[1];
+      const file3 = chunk[2];
+      const file4 = chunk[3];
+
+      if ((file1 instanceof File)) {
+        await this.addImageToDocument(page, file1, 0, 0, imageWidth - (margin / 2));
+      }
+      if ((file2 instanceof File)) {
+        await this.addImageToDocument(page, file2, imageWidth + margin, 0, imageWidth - (margin / 2));
+      }
+      if ((file3 instanceof File)) {
+        await this.addImageToDocument(page, file3, 0, secondrowOffset, imageWidth - (margin / 2));
+      }
+      if ((file4 instanceof File)) {
+        await this.addImageToDocument(page, file4, imageWidth + margin, secondrowOffset, imageWidth - (margin / 2));
+      }
+
+      await Promise.resolve();
+
+      if (files.length > i + 4) {
+        console.log(`${files.length} > ${i + 4}`)
+        doc.addPage();
+      }
     }
-    if ((file3 instanceof File)) {
-      promiseArray.push(this.addImageToDocument(doc, file3, 0, secondrowOffset, imageWidth - (margin / 2)));
-    }
-    if ((file4 instanceof File)) {
-      promiseArray.push(this.addImageToDocument(doc, file4,  imageWidth + margin, secondrowOffset, imageWidth - (margin / 2)));
-    }
-    
-    Promise.all(promiseArray).then(() =>
-    {
-      doc.save("collage.pdf");
-    })
+    await Promise.resolve();
+
+    doc.save("collage.pdf");
   }
 
-  async addImageToDocument(doc : jsPDF, image: File, x : number, y: number, w: number) {
+  async addImageToDocument(doc: jsPDF, image: File, x: number, y: number, w: number) {
     const mimeType = image.type;
     if (mimeType.match(/image\/*/) == null) {
-        return;
+      return;
     }
-    
+
     const result = await this.getDataUrl(image);
 
     // Calculate height
@@ -66,7 +80,7 @@ export class AppComponent {
     doc.addImage(result, 'JPEG', x, y, w, currentH);
   }
 
-  getDataUrl(file: File) : Promise<string> {
+  getDataUrl(file: File): Promise<string> {
     return new Promise((suc, rej) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -75,13 +89,15 @@ export class AppComponent {
         } else {
           rej();
         }
-          
+
       };
       reader.readAsDataURL(file);
     });
   }
 
-  onFileSelected(targetElement: HTMLImageElement, fileElement : any) {
+  onFileSelected(targetElement: HTMLElement, fileElement: any) {
+    targetElement.innerHTML = "";
+
     if (!(fileElement instanceof HTMLInputElement)) {
       return;
     }
@@ -91,14 +107,18 @@ export class AppComponent {
     if (files == null) {
       return;
     }
-    
-    const mimeType = files[0].type;
-    if (mimeType.match(/image\/*/) == null) {
-        return;
+
+    for (let index = 0; index < files.length; index++) {
+      const element = files[index];
+
+      this.getDataUrl(element).then(result => {
+        const newImage = new Image();
+        newImage.src = result;
+
+        targetElement.appendChild(newImage);
+      })
+
     }
 
-    this.getDataUrl(files[0]).then(result => {
-      targetElement.src = result;
-    })
   }
 }

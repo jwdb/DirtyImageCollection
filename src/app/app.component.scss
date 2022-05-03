@@ -24,7 +24,7 @@ input {
   overflow: hidden;
 }
 
-input ~ img {
+::ng-deep .imageCollection > img {
   width: 30%;
 }
 
@@ -39,7 +39,7 @@ h1 {
   visibility: hidden;
 }
 .custom-file-input::before {
-  content: 'Select a file';
+  content: 'Select files';
   color: black;
   display: inline-block;
   background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);

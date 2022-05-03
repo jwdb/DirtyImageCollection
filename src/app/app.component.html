@@ -2,23 +2,8 @@
   <h1> Image Collage </h1>
   <div class="row">
     <div class="column">
-      <input ngModel #image1 type="file" class="custom-file-input" (change)="onFileSelected(image1display, $event.target)">
-      <img ngModel #image1display />
+      <input ngModel #images type="file" class="custom-file-input" (change)="onFileSelected(imagedisplay, $event.target)" multiple>
+      <div ngModel #imagedisplay class="imageCollection"></div>
     </div>
-    <div class="column">
-      <input ngModel #image2 type="file" class="custom-file-input" (change)="onFileSelected(image2display, $event.target)">
-      <img ngModel #image2display />
-    </div>
-  </div>
-  <div class="row">
-    <div class="column">
-      <input ngModel #image3 type="file" class="custom-file-input" (change)="onFileSelected(image3display, $event.target)">
-      <img ngModel #image3display />
-    </div>
-    <div class="column">
-      <input ngModel #image4 type="file" class="custom-file-input" (change)="onFileSelected(image4display, $event.target)">
-      <img ngModel #image4display />
-    </div>
-  </div>
-  <button (click)="createpdf(image1, image2, image3, image4)">Create PDF</button>
+  <button (click)="createpdf(images)">Create PDF</button>
 </div>
