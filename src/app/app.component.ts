@@ -10,7 +10,16 @@ import { jsPDF } from "jspdf";
 export class AppComponent {
   title = 'imagecollage';
 
-  createpdf(image1: HTMLInputElement,image2: HTMLInputElement,image3: HTMLInputElement,image4: HTMLInputElement) {
+  
+  public imageWidth : number = 105;
+
+
+  createpdf(image1: HTMLInputElement, image2: HTMLInputElement, image3: HTMLInputElement, image4: HTMLInputElement) {
+    // Size of A4: 210 x 297 mm
+    const imageWidth = 105;
+    const margin = 1;
+    const secondrowOffset  = 170; // 297 - average image height (127) = 170
+    
     const doc = new jsPDF();
     
     const file1 = image1.files?.item(0);
@@ -25,10 +34,11 @@ export class AppComponent {
       return;
     }
 
-    const promiseFile11 = this.addImageToDocument(doc, file1, 0, 0, 105, 127);
-    const promiseFile12 = this.addImageToDocument(doc, file2, 105, 0, 105, 127);
-    const promiseFile13 = this.addImageToDocument(doc, file3, 0, 170, 105, 127);
-    const promiseFile14 = this.addImageToDocument(doc, file4,  105, 170, 105, 127);
+    const promiseFile11 = this.addImageToDocument(doc, file1, 0, 0, imageWidth - (margin / 2));
+    const promiseFile12 = this.addImageToDocument(doc, file2, imageWidth + margin, 0, imageWidth - (margin / 2));
+
+    const promiseFile13 = this.addImageToDocument(doc, file3, 0, secondrowOffset, imageWidth - (margin / 2));
+    const promiseFile14 = this.addImageToDocument(doc, file4,  imageWidth + margin, secondrowOffset, imageWidth - (margin / 2));
 
     Promise.all([promiseFile11, promiseFile12, promiseFile13, promiseFile14]).then(() =>
     {
@@ -36,14 +46,23 @@ export class AppComponent {
     })
   }
 
-  async addImageToDocument(doc : jsPDF, image: File, x : number, y: number, h: number, w: number) {
+  async addImageToDocument(doc : jsPDF, image: File, x : number, y: number, w: number) {
     const mimeType = image.type;
     if (mimeType.match(/image\/*/) == null) {
         return;
     }
-
+    
     const result = await this.getDataUrl(image);
-    doc.addImage(result, 'JPEG', x, y, h, w);
+
+    // Calculate height
+    const fakeImage = new Image();
+    fakeImage.src = result;
+    const totalW = fakeImage.width;
+    var currentH = fakeImage.height;
+
+    currentH = w / totalW * currentH;
+
+    doc.addImage(result, 'JPEG', x, y, w, currentH);
   }
 
   getDataUrl(file: File) : Promise<string> {
