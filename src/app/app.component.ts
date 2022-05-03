@@ -19,6 +19,7 @@ export class AppComponent {
     const imageWidth = 105;
     const margin = 1;
     const secondrowOffset  = 170; // 297 - average image height (127) = 170
+    const promiseArray : Array<Promise<any>> = [];
     
     const doc = new jsPDF();
     
@@ -27,20 +28,20 @@ export class AppComponent {
     const file3 = image3.files?.item(0);
     const file4 = image4.files?.item(0);
     
-    if (!(file1 instanceof File)
-     || !(file2 instanceof File)
-     || !(file3 instanceof File)
-     || !(file4 instanceof File)) {
-      return;
+    if ((file1 instanceof File)) {
+      promiseArray.push(this.addImageToDocument(doc, file1, 0, 0, imageWidth - (margin / 2)));
     }
-
-    const promiseFile11 = this.addImageToDocument(doc, file1, 0, 0, imageWidth - (margin / 2));
-    const promiseFile12 = this.addImageToDocument(doc, file2, imageWidth + margin, 0, imageWidth - (margin / 2));
-
-    const promiseFile13 = this.addImageToDocument(doc, file3, 0, secondrowOffset, imageWidth - (margin / 2));
-    const promiseFile14 = this.addImageToDocument(doc, file4,  imageWidth + margin, secondrowOffset, imageWidth - (margin / 2));
-
-    Promise.all([promiseFile11, promiseFile12, promiseFile13, promiseFile14]).then(() =>
+    if ((file2 instanceof File)) {
+      promiseArray.push(this.addImageToDocument(doc, file2, imageWidth + margin, 0, imageWidth - (margin / 2)));
+    }
+    if ((file3 instanceof File)) {
+      promiseArray.push(this.addImageToDocument(doc, file3, 0, secondrowOffset, imageWidth - (margin / 2)));
+    }
+    if ((file4 instanceof File)) {
+      promiseArray.push(this.addImageToDocument(doc, file4,  imageWidth + margin, secondrowOffset, imageWidth - (margin / 2)));
+    }
+    
+    Promise.all(promiseArray).then(() =>
     {
       doc.save("collage.pdf");
     })
